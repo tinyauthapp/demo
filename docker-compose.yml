@@ -42,7 +42,7 @@ services:
       traefik.http.routers.demo.entrypoints: web
       traefik.http.services.demo.loadbalancer.server.port: 3000
       traefik.http.routers.demo.middlewares: tinyauth
-      tinyauth.apps.demo.path.allow: /^\/$/
+      tinyauth.apps.demo.path.allow: ^\/$
       tinyauth.apps.demo.config.domain: ${TRAEFIK_DEMO_DOMAIN}
 
 networks:
