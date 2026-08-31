@@ -20,11 +20,12 @@ services:
       TINYAUTH_AUTH_TRUSTEDPROXIES: 172.30.0.0/24
       TINYAUTH_DATABASE_DRIVER: memory
       TINYAUTH_LOG_LEVEL: error
+      TINYAUTH_UI_TITLE: Tinyauth Demo
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       traefik.enable: true
-      traefik.http.routers.tinyauth.rule: Host(`${TRAEFIK_TINYAUTH_DOMAIN`)
+      traefik.http.routers.tinyauth.rule: Host(`${TRAEFIK_TINYAUTH_DOMAIN}`)
       traefik.http.routers.tinyauth.entrypoints: web
       traefik.http.services.tinyauth.loadbalancer.server.port: 3000
       traefik.http.middlewares.tinyauth.forwardauth.address: http://tinyauth:3000/api/auth/traefik
