@@ -55,6 +55,8 @@
                 --border: oklch(0.922 0 0);
                 --input: oklch(0.922 0 0);
                 --ring: oklch(0.708 0 0);
+
+                interpolate-size: allow-keywords;
             }
 
             @media (prefers-color-scheme: dark) {
@@ -96,27 +98,43 @@
                 p {
                     @apply leading-6;
                 }
-                tr {
-                    @apply m-0 border-t p-0 even:bg-muted;
-                }
-                th {
-                    @apply border px-4 py-2 text-left font-bold;
-                }
                 code {
                     @apply relative rounded bg-muted px-[0.2rem] py-[0.1rem] font-mono text-sm font-semibold break-all;
                 }
-                pre {
-                    @apply bg-accent border border-border rounded-md p-2 whitespace-break-spaces break-all;
+            }
+
+            /* Single entrance for the card, one motion moment per page load */
+            @media (prefers-reduced-motion: no-preference) {
+                main.card {
+                    animation: card-in 0.35s ease-out both;
                 }
-                pre code {
-                    @apply bg-transparent p-0 font-normal;
+            }
+            @keyframes card-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+            }
+
+            /* Smooth expand/collapse for the headers <details>.
+               Browsers without ::details-content just snap open. */
+            @media (prefers-reduced-motion: no-preference) {
+                details::details-content {
+                    block-size: 0;
+                    overflow: clip;
+                    transition:
+                        block-size 0.3s ease,
+                        content-visibility 0.3s allow-discrete;
+                }
+                details[open]::details-content {
+                    block-size: auto;
                 }
             }
 
             /* Component classes lifted verbatim from tinyauth's shadcn ui */
             @layer components {
                 .card {
-                    @apply bg-card text-card-foreground flex flex-col gap-3 rounded-xl border py-6 shadow-sm;
+                    @apply bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-6 shadow-sm;
                 }
                 .card-header {
                     @apply grid auto-rows-min grid-rows-[auto_auto] items-start px-6;
@@ -131,7 +149,7 @@
                     @apply px-6;
                 }
                 .card-footer {
-                    @apply flex items-center px-6 mt-2;
+                    @apply flex items-center px-6;
                 }
                 .btn {
                     @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] hover:cursor-pointer h-9 px-4 py-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
@@ -149,19 +167,21 @@
                     @apply inline-flex items-center justify-center gap-1 rounded-full bg-secondary font-light px-3 py-0.5 border-border border text-sm text-accent-foreground;
                 }
             }
+
+            tr {
+                @apply m-0 border-t p-0 even:bg-muted;
+            }
         </style>
     </head>
     <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8">
-        <!-- Background lives on a fixed layer so it never stretches or
-             re-scales when the page becomes taller than the viewport. -->
         <div
             class="fixed inset-0 -z-10 bg-[url(/background.jpg)] bg-cover bg-center"
             aria-hidden="true"
         ></div>
         <div class="w-full max-w-lg">
-            <main class="card relative has-[details[open]]:rounded-b-none">
+            <main class="card relative">
                 {{if .Protected}}
-                <div class="card-header mb-2">
+                <div class="card-header">
                     <div
                         class="flex flex-col gap-3 items-center justify-center text-center"
                     >
@@ -180,7 +200,6 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                class="lucide lucide-check-icon lucide-check"
                             >
                                 <path d="M20 6 9 17l-5-5" />
                             </svg>
@@ -229,7 +248,7 @@
                     </dl>
                 </div>
                 {{else}}
-                <div class="card-header mb-2">
+                <div class="card-header">
                     <div
                         class="flex flex-col gap-3 items-center justify-center text-center"
                     >
@@ -248,7 +267,6 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                class="lucide lucide-lock-open-icon lucide-lock-open"
                             >
                                 <rect
                                     width="18"
@@ -263,53 +281,35 @@
                         </div>
                         <h1 class="card-title text-xl">This page is public</h1>
                         <p class="card-description max-w-sm">
-                            Anyone can see it. Tinyauth is told to skip
-                            authentication for <code>/</code>, so no identity
-                            headers were forwarded.
+                            Tinyauth skips authentication for
+                            <code>/</code>, so anyone can see this page and no
+                            identity headers were forwarded.
                         </p>
                     </div>
                 </div>
 
                 <div class="card-content flex flex-col gap-3">
                     <div class="text-sm font-medium">What happens next</div>
-                    <ol class="flex flex-col gap-3 text-sm">
-                        <li class="flex gap-3">
-                            <span
-                                class="bg-secondary text-secondary-foreground border border-border rounded-full size-6 shrink-0 flex items-center justify-center text-xs font-semibold"
-                                >1</span
-                            >
-                            <span class="leading-6">
-                                You click the button below to open
-                                <code>/protected</code>.
-                            </span>
+                    <ol
+                        class="flex flex-col gap-2.5 text-sm border-l-2 border-border pl-4 ml-1"
+                    >
+                        <li class="leading-6">
+                            You open <code>/protected</code> and Traefik asks
+                            Tinyauth whether you're logged in. You aren't, so
+                            you're redirected to the login page.
                         </li>
-                        <li class="flex gap-3">
-                            <span
-                                class="bg-secondary text-secondary-foreground border border-border rounded-full size-6 shrink-0 flex items-center justify-center text-xs font-semibold"
-                                >2</span
-                            >
-                            <span class="leading-6">
-                                Traefik asks Tinyauth whether you're logged in.
-                                You aren't, so Tinyauth redirects you to its
-                                login page.
-                            </span>
+                        <li class="leading-6">
+                            You sign in with <code>user</code> /
+                            <code>password</code> or OAuth
+                            <span class="italic text-muted-foreground"
+                                >(the demo stores nothing about you)</span
+                            >.
                         </li>
-                        <li class="flex gap-3">
-                            <span
-                                class="bg-secondary text-secondary-foreground border border-border rounded-full size-6 shrink-0 flex items-center justify-center text-xs font-semibold"
-                                >3</span
-                            >
-                            <span class="leading-6">
-                                After signing in you land on the protected page,
-                                and this app receives your identity as
-                                <code>Remote-*</code> headers.
-                            </span>
+                        <li class="leading-6">
+                            You land on the protected page and this app receives
+                            your identity as <code>Remote-*</code> headers.
                         </li>
                     </ol>
-                    <pre
-                        class="text-xs"
-                    ><code># the only difference between the two pages
-tinyauth.apps.app.path.allow: ^\/$</code></pre>
                 </div>
                 {{end}}
 
@@ -331,12 +331,7 @@ tinyauth.apps.app.path.allow: ^\/$</code></pre>
                         This app does no auth of its own.
                     </p>
                     {{end}}
-                </div>
-                <div class="card-footer mt-0 flex-col items-stretch">
-                    <!-- The header table is positioned off the card's bottom
-                         edge and shares its border, so it reads as the card
-                         extending downward while the card itself (and
-                         everything above) never moves. -->
+
                     <details class="group">
                         <summary
                             class="btn btn-ghost w-full justify-between list-none [&::-webkit-details-marker]:hidden select-none"
@@ -348,7 +343,7 @@ tinyauth.apps.app.path.allow: ^\/$</code></pre>
                                 >
                             </span>
                             <svg
-                                class="text-muted-foreground transition-transform group-open:rotate-180"
+                                class="text-muted-foreground transition-transform duration-300 group-open:rotate-180"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -361,24 +356,20 @@ tinyauth.apps.app.path.allow: ^\/$</code></pre>
                             </svg>
                         </summary>
                         <div
-                            class="absolute -inset-x-px top-full z-10 max-h-64 overflow-auto rounded-b-xl border bg-card text-card-foreground shadow-sm"
+                            class="mt-2 overflow-auto rounded-md border max-h-64"
                         >
-                            <table class="w-full text-sm border-collapse">
-                                <thead class="sticky top-0 bg-card">
-                                    <tr class="border-t-0">
-                                        <th
-                                            class="border-x-0 border-t-0 text-xs font-medium text-muted-foreground"
-                                        >
+                            <table class="w-full text-sm border-separate border-spacing-0">
+                                <thead>
+                                    <tr>
+                                        <th class="sticky top-0 bg-card px-4 py-2 text-left text-xs font-medium text-muted-foreground border-b">
                                             Header
                                         </th>
-                                        <th
-                                            class="border-x-0 border-t-0 text-xs font-medium text-muted-foreground"
-                                        >
+                                        <th class="sticky top-0 bg-card px-4 py-2 text-left text-xs font-medium text-muted-foreground border-b">
                                             Value
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody class="divide-y divide-border">
                                     {{range .Headers}}
                                     <tr>
                                         <td
