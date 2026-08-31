@@ -173,11 +173,11 @@
             }
         </style>
     </head>
-    <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8">
-        <div
-            class="fixed inset-0 -z-10 bg-[url(/background.jpg)] bg-cover bg-center"
-            aria-hidden="true"
-        ></div>
+    {{ if.Protected }}
+    <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8 bg-gradient-to-br from-[#4FD1D9] to-[#34D399]">
+    {{ else }}
+    <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8 bg-gradient-to-br from-[#4A7BA8] to-[#334155]">
+    {{ end }}
         <div class="w-full max-w-lg">
             <main class="card relative">
                 {{if .Protected}}
@@ -190,7 +190,7 @@
                             aria-hidden="true"
                         >
                             <svg
-                                class="size-6"
+                                class="size-6 stroke-[2.25]"
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="24"
                                 height="24"
@@ -257,7 +257,7 @@
                             aria-hidden="true"
                         >
                             <svg
-                                class="size-6"
+                                class="size-6 stroke-[2.25]"
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="24"
                                 height="24"
@@ -321,11 +321,11 @@
                         >Log out</a
                     >
                     <a class="btn btn-ghost w-full" href="/"
-                        >&larr; Back to the public page</a
+                        >Back to the public page</a
                     >
                     {{else}}
                     <a class="btn btn-default w-full" href="/protected"
-                        >Open protected page &rarr;</a
+                        >Open protected page</a
                     >
                     <p class="text-muted-foreground text-xs text-center">
                         This app does no auth of its own.

@@ -13,9 +13,6 @@ import (
 //go:embed page.html
 var pageHTML string
 
-//go:embed background.jpg
-var background []byte
-
 var tmpl = template.Must(template.New("page").Parse(pageHTML))
 
 // identityHeaders are the headers Tinyauth sets on authenticated requests.
@@ -58,13 +55,6 @@ func render(w http.ResponseWriter, r *http.Request, protected bool, logoutURL st
 	}
 }
 
-func backgroundHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Cache-Control", "public, max-age=3600")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Write(background)
-}
-
 func main() {
 	logoutURL := os.Getenv("LOGOUT_URL")
 	if logoutURL == "" {
@@ -74,7 +64,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) { render(w, r, false, logoutURL) })
 	mux.HandleFunc("GET /protected", func(w http.ResponseWriter, r *http.Request) { render(w, r, true, logoutURL) })
-	mux.HandleFunc("GET /background.jpg", backgroundHandler)
 
 	addr := ":3000"
 	log.Printf("tinyauth-demo listening on %s (logout -> %s)", addr, logoutURL)
