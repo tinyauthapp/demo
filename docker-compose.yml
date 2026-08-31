@@ -1,0 +1,134 @@
+# Tinyauth demo stack
+# ===================
+# Three services:
+#
+#   traefik   – reverse proxy; routes app.example.com and auth.example.com and
+#               applies the `tinyauth` forward-auth middleware to the demo app.
+#   tinyauth  – the authentication proxy. Traefik asks it "is this request
+#               allowed?" before forwarding anything to the app.
+#   demo      – this repo. Zero auth logic. "/" is public (Tinyauth is told to
+#               bypass it), "/protected" prints the identity headers Tinyauth
+#               injected (Remote-User, Remote-Name, Remote-Email, Remote-Groups).
+#
+# Request flow for app.example.com/protected:
+#   browser ─► traefik ─► (forwardauth) tinyauth ─► 200 + Remote-* headers
+#                     └─► demo (Remote-* headers attached)
+#   If the user has no session Tinyauth answers with a redirect instead and
+#   Traefik sends the browser to the login page at auth.example.com.
+#
+# Request flow for app.example.com/ is identical, except Tinyauth sees the
+# path matches `path.allow` and returns 200 immediately, without a session and
+# without any Remote-* headers.
+#
+# Docs: https://tinyauth.app/docs/reference/configuration/
+#       https://tinyauth.app/docs/guides/access-controls/
+#
+# Before running, point app.example.com and auth.example.com at this host
+# (e.g. add them to /etc/hosts for a local test), then: docker compose up -d
+# Log in with  demo / password  (see TINYAUTH_AUTH_USERS below).
+
+services:
+  traefik:
+    image: traefik:v3.6
+    restart: unless-stopped
+    command:
+      # Discover routers/middlewares from container labels, but only for
+      # containers that opt in with traefik.enable=true.
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      # Plain HTTP on :80 keeps the demo simple. For real deployments add an
+      # HTTPS entrypoint + ACME resolver, switch TINYAUTH_APPURL to https and
+      # set TINYAUTH_AUTH_SECURECOOKIE=true.
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+    volumes:
+      # Read-only Docker socket so Traefik can watch container labels.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  tinyauth:
+    image: ghcr.io/tinyauthapp/tinyauth:v5
+    restart: unless-stopped
+    environment:
+      # Public URL of the Tinyauth login page. Must match the router host below.
+      TINYAUTH_APPURL: http://tinyauth.127.0.0.1.sslip.io
+      # Local users in htpasswd format (username:bcrypt-hash), comma-separated.
+      # Compose interpolates `$`, so every `$` in the hash is doubled to `$$`.
+      # This hash is for the password "password". Generate your own with:
+      #   docker run -i -t --rm ghcr.io/tinyauthapp/tinyauth:v5 user create --interactive
+      # (pick "Format for Docker" to get the escaping right). Tinyauth also
+      # supports OAuth/OIDC and LDAP users; those can carry groups, which local
+      # users don't, so Remote-Groups shows "(not set)" in this demo.
+      TINYAUTH_AUTH_USERS: "demo:$$2y$$05$$qx/.HRuUsQigCMzkhH84tuZXwyllGjhlVGl5Jrw0i41yon3dwIaK."
+      # Tinyauth only trusts X-Forwarded-For / X-Real-IP from these ranges.
+      # The compose network below is pinned to this subnet so Traefik's
+      # address is always inside it (needed for IP-based ACLs and audit logs).
+      TINYAUTH_AUTH_TRUSTEDPROXIES: 172.30.0.0/24
+    volumes:
+      # Sessions live in an SQLite database; persist it so logins survive
+      # container restarts.
+      - tinyauth-data:/data
+      # Tinyauth reads `tinyauth.apps.*` access-control labels straight from
+      # the Docker API, so it needs the socket too (read-only is enough). If
+      # you'd rather not expose it, drop this mount, set
+      # TINYAUTH_LABELPROVIDER=none and use the env-var form instead, e.g.
+      # TINYAUTH_APPS_APP_PATH_ALLOW='^\/$'.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      traefik.enable: "true"
+      # Route the login UI.
+      traefik.http.routers.tinyauth.rule: Host(`tinyauth.127.0.0.1.sslip.io`)
+      traefik.http.routers.tinyauth.entrypoints: web
+      traefik.http.services.tinyauth.loadbalancer.server.port: "3000"
+      # --- The forward-auth middleware -------------------------------------
+      # Traefik sends a copy of each incoming request to this address. A 2xx
+      # means "let it through"; anything else is returned to the browser
+      # (Tinyauth answers with a redirect to its login page).
+      traefik.http.middlewares.tinyauth.forwardauth.address: http://tinyauth:3000/api/auth/traefik
+      # Copy these headers from Tinyauth's response onto the request that is
+      # forwarded to the protected app. Without this list Traefik drops them,
+      # and the demo page would show "(not set)" for everything.
+      traefik.http.middlewares.tinyauth.forwardauth.authResponseHeaders: Remote-User,Remote-Name,Remote-Email,Remote-Groups,Remote-Sub
+
+  demo:
+    # Built from this repo. Swap for a published image if you prefer.
+    build: .
+    image: tinyauth-demo
+    restart: unless-stopped
+    environment:
+      # Where the "Log out" button points. Tinyauth's logout endpoint clears the
+      # session and sends the user back to the login page.
+      LOGOUT_URL: http://tinyauth.127.0.0.1.sslip.io/logout
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.demo.rule: Host(`demo.127.0.0.1.sslip.io`)
+      traefik.http.routers.demo.entrypoints: web
+      traefik.http.services.demo.loadbalancer.server.port: "3000"
+      # Attach the middleware defined on the tinyauth container. This single
+      # line is all it takes to protect any service with Tinyauth.
+      traefik.http.routers.demo.middlewares: tinyauth
+      # --- Tinyauth access controls ----------------------------------------
+      # Tinyauth reads `tinyauth.apps.<name>.*` labels, where <name> is the
+      # subdomain of the request (app.example.com -> "app"). They can live on
+      # this container or on the tinyauth container; labels are picked up live.
+      #
+      # path.allow is a regex of paths that skip authentication entirely.
+      # `^\/$` matches exactly "/", so the landing page is public while
+      # "/protected" (and everything else) still requires a login.
+      tinyauth.apps.demo.path.allow: ^\/$
+      tinyauth.apps.demo.config.domain: demo.127.0.0.1.sslip.io
+      # More examples (see the access-controls guide):
+      #   tinyauth.apps.app.users.allow: demo,alice     # only these local users
+      #   tinyauth.apps.app.path.block: ^\/admin         # always deny, even if logged in
+      #   tinyauth.apps.app.ip.bypass: 10.0.0.0/8        # LAN skips login
+      #   tinyauth.apps.app.oauth.groups: admins         # OIDC group required
+
+volumes:
+  tinyauth-data:
+
+networks:
+  # Fixed subnet so TINYAUTH_AUTH_TRUSTEDPROXIES above is always accurate.
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

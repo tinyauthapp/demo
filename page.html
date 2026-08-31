@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light dark" />
+        <title>Tinyauth Demo</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <style type="text/tailwindcss">
+            /* Theme copied from tinyauth frontend/src/index.css */
+            @custom-variant dark (@media (prefers-color-scheme: dark));
+
+            @theme inline {
+                --radius-sm: calc(var(--radius) - 4px);
+                --radius-md: calc(var(--radius) - 2px);
+                --radius-lg: var(--radius);
+                --radius-xl: calc(var(--radius) + 4px);
+                --color-background: var(--background);
+                --color-foreground: var(--foreground);
+                --color-card: var(--card);
+                --color-card-foreground: var(--card-foreground);
+                --color-popover: var(--popover);
+                --color-popover-foreground: var(--popover-foreground);
+                --color-primary: var(--primary);
+                --color-primary-foreground: var(--primary-foreground);
+                --color-secondary: var(--secondary);
+                --color-secondary-foreground: var(--secondary-foreground);
+                --color-muted: var(--muted);
+                --color-muted-foreground: var(--muted-foreground);
+                --color-accent: var(--accent);
+                --color-accent-foreground: var(--accent-foreground);
+                --color-destructive: var(--destructive);
+                --color-border: var(--border);
+                --color-input: var(--input);
+                --color-ring: var(--ring);
+            }
+
+            :root {
+                --radius: 0.625rem;
+                --background: oklch(1 0 0);
+                --foreground: oklch(0.145 0 0);
+                --card: oklch(1 0 0);
+                --card-foreground: oklch(0.145 0 0);
+                --popover: oklch(1 0 0);
+                --popover-foreground: oklch(0.145 0 0);
+                --primary: oklch(0.205 0 0);
+                --primary-foreground: oklch(0.985 0 0);
+                --secondary: oklch(0.97 0 0);
+                --secondary-foreground: oklch(0.205 0 0);
+                --muted: oklch(0.97 0 0);
+                --muted-foreground: oklch(0.556 0 0);
+                --accent: oklch(0.97 0 0);
+                --accent-foreground: oklch(0.205 0 0);
+                --destructive: oklch(0.577 0.245 27.325);
+                --border: oklch(0.922 0 0);
+                --input: oklch(0.922 0 0);
+                --ring: oklch(0.708 0 0);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --background: oklch(0.145 0 0);
+                    --foreground: oklch(0.985 0 0);
+                    --card: oklch(0.205 0 0);
+                    --card-foreground: oklch(0.985 0 0);
+                    --popover: oklch(0.205 0 0);
+                    --popover-foreground: oklch(0.985 0 0);
+                    --primary: oklch(0.922 0 0);
+                    --primary-foreground: oklch(0.205 0 0);
+                    --secondary: oklch(0.269 0 0);
+                    --secondary-foreground: oklch(0.985 0 0);
+                    --muted: oklch(0.269 0 0);
+                    --muted-foreground: oklch(0.708 0 0);
+                    --accent: oklch(0.269 0 0);
+                    --accent-foreground: oklch(0.985 0 0);
+                    --destructive: oklch(0.704 0.191 22.216);
+                    --border: oklch(1 0 0 / 10%);
+                    --input: oklch(1 0 0 / 15%);
+                    --ring: oklch(0.556 0 0);
+                }
+            }
+
+            @layer base {
+                * {
+                    @apply border-border outline-ring/50;
+                }
+                html {
+                    /* Always reserve the vertical scrollbar so the layout
+                       doesn't shift sideways when the headers table makes
+                       the page taller than the viewport. */
+                    overflow-y: scroll;
+                }
+                body {
+                    @apply bg-background text-foreground;
+                }
+                p {
+                    @apply leading-6;
+                }
+                tr {
+                    @apply m-0 border-t p-0 even:bg-muted;
+                }
+                th {
+                    @apply border px-4 py-2 text-left font-bold;
+                }
+                code {
+                    @apply relative rounded bg-muted px-[0.2rem] py-[0.1rem] font-mono text-sm font-semibold break-all;
+                }
+                pre {
+                    @apply bg-accent border border-border rounded-md p-2 whitespace-break-spaces break-all;
+                }
+                pre code {
+                    @apply bg-transparent p-0 font-normal;
+                }
+            }
+
+            /* Component classes lifted verbatim from tinyauth's shadcn ui */
+            @layer components {
+                .card {
+                    @apply bg-card text-card-foreground flex flex-col gap-3 rounded-xl border py-6 shadow-sm;
+                }
+                .card-header {
+                    @apply grid auto-rows-min grid-rows-[auto_auto] items-start px-6;
+                }
+                .card-title {
+                    @apply leading-none font-semibold;
+                }
+                .card-description {
+                    @apply text-muted-foreground text-sm;
+                }
+                .card-content {
+                    @apply px-6;
+                }
+                .card-footer {
+                    @apply flex items-center px-6 mt-2;
+                }
+                .btn {
+                    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] hover:cursor-pointer h-9 px-4 py-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+                }
+                .btn-default {
+                    @apply bg-primary text-primary-foreground shadow-xs hover:bg-primary/90;
+                }
+                .btn-outline {
+                    @apply border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50;
+                }
+                .btn-ghost {
+                    @apply hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50;
+                }
+                .chip {
+                    @apply inline-flex items-center justify-center gap-1 rounded-full bg-secondary font-light px-3 py-0.5 border-border border text-sm text-accent-foreground;
+                }
+            }
+        </style>
+    </head>
+    <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8">
+        <!-- Background lives on a fixed layer so it never stretches or
+             re-scales when the page becomes taller than the viewport. -->
+        <div
+            class="fixed inset-0 -z-10 bg-[url(/background.jpg)] bg-cover bg-center"
+            aria-hidden="true"
+        ></div>
+        <div class="w-full max-w-lg">
+            <main class="card relative has-[details[open]]:rounded-b-none">
+                {{if .Protected}}
+                <div class="card-header mb-2">
+                    <div
+                        class="flex flex-col gap-3 items-center justify-center text-center"
+                    >
+                        <div
+                            class="bg-accent-foreground box-content text-muted rounded-lg size-8 p-2 flex items-center justify-center"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                class="size-6"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-check-icon lucide-check"
+                            >
+                                <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                        </div>
+                        <h1 class="card-title text-xl">
+                            You're authenticated!
+                        </h1>
+                        <p class="card-description max-w-sm">
+                            Tinyauth verified your identity before this page
+                            ever loaded.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-content flex flex-col gap-3">
+                    <div class="text-sm font-medium">
+                        Identity forwarded by the proxy
+                    </div>
+                    <dl
+                        class="flex flex-col rounded-md border divide-y divide-border"
+                    >
+                        {{range .Identity}}
+                        <div
+                            class="flex flex-col gap-1 px-3 py-2 sm:flex-row sm:items-center sm:gap-4"
+                        >
+                            <dt
+                                class="text-muted-foreground text-sm shrink-0 sm:w-36"
+                            >
+                                {{.Key}}
+                            </dt>
+                            <dd class="text-sm font-mono break-all min-w-0">
+                                {{if not .Value}}<span
+                                    class="text-muted-foreground font-sans"
+                                    >(not set)</span
+                                >
+                                {{else if eq .Key "Remote-Groups"}}<span
+                                    class="flex flex-wrap gap-1.5 font-sans"
+                                    >{{range $.Groups}}<span class="chip"
+                                        >{{.}}</span
+                                    >{{end}}</span
+                                >
+                                {{else}}{{.Value}}{{end}}
+                            </dd>
+                        </div>
+                        {{end}}
+                    </dl>
+                </div>
+                {{else}}
+                <div class="card-header mb-2">
+                    <div
+                        class="flex flex-col gap-3 items-center justify-center text-center"
+                    >
+                        <div
+                            class="bg-accent-foreground box-content text-muted rounded-lg size-8 p-2 flex items-center justify-center"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                class="size-6"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-lock-open-icon lucide-lock-open"
+                            >
+                                <rect
+                                    width="18"
+                                    height="11"
+                                    x="3"
+                                    y="11"
+                                    rx="2"
+                                    ry="2"
+                                />
+                                <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                            </svg>
+                        </div>
+                        <h1 class="card-title text-xl">This page is public</h1>
+                        <p class="card-description max-w-sm">
+                            Anyone can see it. Tinyauth is told to skip
+                            authentication for <code>/</code>, so no identity
+                            headers were forwarded.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-content flex flex-col gap-3">
+                    <div class="text-sm font-medium">What happens next</div>
+                    <ol class="flex flex-col gap-3 text-sm">
+                        <li class="flex gap-3">
+                            <span
+                                class="bg-secondary text-secondary-foreground border border-border rounded-full size-6 shrink-0 flex items-center justify-center text-xs font-semibold"
+                                >1</span
+                            >
+                            <span class="leading-6">
+                                You click the button below to open
+                                <code>/protected</code>.
+                            </span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span
+                                class="bg-secondary text-secondary-foreground border border-border rounded-full size-6 shrink-0 flex items-center justify-center text-xs font-semibold"
+                                >2</span
+                            >
+                            <span class="leading-6">
+                                Traefik asks Tinyauth whether you're logged in.
+                                You aren't, so Tinyauth redirects you to its
+                                login page.
+                            </span>
+                        </li>
+                        <li class="flex gap-3">
+                            <span
+                                class="bg-secondary text-secondary-foreground border border-border rounded-full size-6 shrink-0 flex items-center justify-center text-xs font-semibold"
+                                >3</span
+                            >
+                            <span class="leading-6">
+                                After signing in you land on the protected page,
+                                and this app receives your identity as
+                                <code>Remote-*</code> headers.
+                            </span>
+                        </li>
+                    </ol>
+                    <pre
+                        class="text-xs"
+                    ><code># the only difference between the two pages
+tinyauth.apps.app.path.allow: ^\/$</code></pre>
+                </div>
+                {{end}}
+
+                <div class="card-footer flex-col items-stretch gap-3">
+                    {{if .Protected}}
+                    <a
+                        class="btn btn-outline text-destructive w-full"
+                        href="{{.LogoutURL}}"
+                        >Log out</a
+                    >
+                    <a class="btn btn-ghost w-full" href="/"
+                        >&larr; Back to the public page</a
+                    >
+                    {{else}}
+                    <a class="btn btn-default w-full" href="/protected"
+                        >Open protected page &rarr;</a
+                    >
+                    <p class="text-muted-foreground text-xs text-center">
+                        This app does no auth of its own.
+                    </p>
+                    {{end}}
+                </div>
+                <div class="card-footer mt-0 flex-col items-stretch">
+                    <!-- The header table is positioned off the card's bottom
+                         edge and shares its border, so it reads as the card
+                         extending downward while the card itself (and
+                         everything above) never moves. -->
+                    <details class="group">
+                        <summary
+                            class="btn btn-ghost w-full justify-between list-none [&::-webkit-details-marker]:hidden select-none"
+                        >
+                            <span>
+                                All request headers
+                                <span class="text-muted-foreground font-normal"
+                                    >({{len .Headers}})</span
+                                >
+                            </span>
+                            <svg
+                                class="text-muted-foreground transition-transform group-open:rotate-180"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="m6 9 6 6 6-6" />
+                            </svg>
+                        </summary>
+                        <div
+                            class="absolute -inset-x-px top-full z-10 max-h-64 overflow-auto rounded-b-xl border bg-card text-card-foreground shadow-sm"
+                        >
+                            <table class="w-full text-sm border-collapse">
+                                <thead class="sticky top-0 bg-card">
+                                    <tr class="border-t-0">
+                                        <th
+                                            class="border-x-0 border-t-0 text-xs font-medium text-muted-foreground"
+                                        >
+                                            Header
+                                        </th>
+                                        <th
+                                            class="border-x-0 border-t-0 text-xs font-medium text-muted-foreground"
+                                        >
+                                            Value
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .Headers}}
+                                    <tr>
+                                        <td
+                                            class="px-4 py-2 align-top font-medium whitespace-nowrap text-xs"
+                                        >
+                                            {{.Key}}
+                                        </td>
+                                        <td
+                                            class="px-4 py-2 align-top font-mono text-xs break-all"
+                                        >
+                                            {{.Value}}
+                                        </td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
