@@ -18,6 +18,8 @@ services:
       TINYAUTH_APPURL: ${TINYAUTH_APP_URL}
       TINYAUTH_AUTH_USERS: ${TINYAUTH_USERS}
       TINYAUTH_AUTH_TRUSTEDPROXIES: 172.30.0.0/24
+      TINYAUTH_DATABASE_DRIVER: memory
+      TINYAUTH_LOG_LEVEL: error
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -39,7 +41,7 @@ services:
       traefik.http.routers.demo.entrypoints: web
       traefik.http.services.demo.loadbalancer.server.port: 3000
       traefik.http.routers.demo.middlewares: tinyauth
-      tinyauth.apps.demo.path.allow: /^(\/|\/background\.jpg)$/
+      tinyauth.apps.demo.path.allow: /^\/$/
       tinyauth.apps.demo.config.domain: ${TRAEFIK_DEMO_DOMAIN}
 
 networks:
