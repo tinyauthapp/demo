@@ -1,16 +1,28 @@
-# ---- build stage -----------------------------------------------------------
-FROM golang:1.26-alpine AS build
-WORKDIR /src
-COPY go.mod ./
-COPY main.go page.html ./
-# Static, stripped binary so it can run in a scratch image with no libc.
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /tinyauth-demo .
+# Builder
+FROM golang:1.26-alpine3.23 AS builder
 
-# ---- runtime stage ---------------------------------------------------------
-FROM scratch
-COPY --from=build /tinyauth-demo /tinyauth-demo
-# Run as an unprivileged UID (no /etc/passwd needed in scratch).
-USER 65534:65534
-ENV LOGOUT_URL=/logout
+ARG LDFLAGS
+
+WORKDIR /demo
+
+COPY . .
+
+RUN go mod download
+RUN CGO_ENABLED=0 go build -o demo -ldflags "${LDFLAGS}"
+
+# Runner
+FROM alpine:3.24 AS runner
+
+WORKDIR /demo
+
+COPY --from=builder /demo/demo ./demo
+
+RUN adduser -u 1000 -H -D demo
+
 EXPOSE 3000
-ENTRYPOINT ["/tinyauth-demo"]
+
+USER demo
+
+ENV PATH=$PATH:/demo
+
+ENTRYPOINT ["demo"]

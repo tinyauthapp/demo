@@ -19,12 +19,7 @@ compare exactly what the proxy forwarded in each case.
 
 ## Run the full demo stack
 
-1. Point `app.example.com` and `auth.example.com` at the Docker host. For a
-   local test, add to `/etc/hosts`:
-
-   ```
-   127.0.0.1 app.example.com auth.example.com
-   ```
+1. Copy the `.env.example` file to `.env` and edit it to your liking.
 
 2. Start everything:
 
@@ -32,12 +27,12 @@ compare exactly what the proxy forwarded in each case.
    docker compose up -d --build
    ```
 
-3. Open <http://app.example.com>. You get the public landing page, no login,
+3. Open the demo app. You get the public landing page, no login,
    no identity headers.
 
 4. Click **Open protected page**. Traefik asks Tinyauth whether you're logged
    in, Tinyauth redirects you to its login page, and after signing in
-   (`demo` / `password`) you land on `/protected` showing your identity.
+   (`user` / `password`) you land on `/protected` showing your identity.
 
 ## Configuration
 
@@ -46,3 +41,7 @@ compare exactly what the proxy forwarded in each case.
 | `LOGOUT_URL` | `/logout` | Target of the "Log out" button.              |
 
 The server always listens on `:3000` and serves `/` (public) and `/protected`.
+
+## License
+
+This project is licensed under the MIT License. TL;DR — You can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software. Just make sure to include the original license in any substantial portions of the code. There’s no warranty — use at your own risk. See the [LICENSE](./LICENSE) file for full details.

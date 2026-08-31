@@ -31,7 +31,6 @@ type page struct {
 	LogoutURL string
 }
 
-// render builds the view model from the request headers and writes the page.
 func render(w http.ResponseWriter, r *http.Request, protected bool, logoutURL string) {
 	p := page{Protected: protected, LogoutURL: logoutURL}
 	for _, h := range identityHeaders {
@@ -53,8 +52,7 @@ func render(w http.ResponseWriter, r *http.Request, protected bool, logoutURL st
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store") // page reflects per-request headers
-	// w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "no-store")
 	if err := tmpl.Execute(w, p); err != nil {
 		log.Printf("render: %v", err)
 	}
