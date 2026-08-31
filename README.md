@@ -42,6 +42,10 @@ compare exactly what the proxy forwarded in each case.
 
 The server always listens on `:3000` and serves `/` (public) and `/protected`.
 
+## Acknowledgments
+
+- Thanks to [Luca Bravo](https://unsplash.com/@lucabravo) for the background image
+
 ## License
 
 This project is licensed under the MIT License. TL;DR — You can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software. Just make sure to include the original license in any substantial portions of the code. There’s no warranty — use at your own risk. See the [LICENSE](./LICENSE) file for full details.

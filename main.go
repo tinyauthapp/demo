@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,6 +14,9 @@ import (
 
 //go:embed page.html
 var pageHTML string
+
+//go:embed bg.webp
+var bg []byte
 
 var tmpl = template.Must(template.New("page").Parse(pageHTML))
 
@@ -56,6 +60,15 @@ func render(w http.ResponseWriter, r *http.Request, protected bool, logoutURL st
 	}
 }
 
+func handleBg(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "image/webp")
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", 60*60*24*30)) // 30 days
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(bg); err != nil {
+		log.Printf("handleBg: %v", err)
+	}
+}
+
 func main() {
 	tinyauthURL := os.Getenv("TINYAUTH_URL")
 	demoURL := os.Getenv("DEMO_URL")
@@ -63,13 +76,14 @@ func main() {
 	logoutURL := ""
 
 	if tinyauthURL != "" && demoURL != "" {
-		encodedDemoURL := url.QueryEscape(demoURL)
-		logoutURL = tinyauthURL + "/logout?login_for=app&redirect_uri=" + encodedDemoURL
+		encodedDemoURL := url.QueryEscape(strings.TrimSuffix(demoURL, "/") + "/protected")
+		logoutURL = strings.TrimSuffix(tinyauthURL, "/") + "/logout?login_for=app&redirect_uri=" + encodedDemoURL
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) { render(w, r, false, logoutURL) })
 	mux.HandleFunc("GET /protected", func(w http.ResponseWriter, r *http.Request) { render(w, r, true, logoutURL) })
+	mux.HandleFunc("GET /bg.webp", handleBg)
 
 	addr := ":3000"
 	log.Printf("tinyauth demo listening on %s", addr)

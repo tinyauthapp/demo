@@ -1,5 +1,9 @@
 # binary
 /tinyauth-demo
+/demo
 
 # air tmp
 /tmp
+
+# env
+/.env

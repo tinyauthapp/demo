@@ -178,7 +178,8 @@
         </style>
     </head>
     <body
-        class="flex flex-col justify-center items-center min-h-svh px-4 py-8 {{ if .Protected }}bg-gradient-to-br from-[#4FD1D9] to-[#34D399]{{ else }}bg-gradient-to-br from-[#4A7BA8] to-[#334155]{{ end }}">
+        class="flex flex-col justify-center items-center min-h-svh px-4 py-8">
+    <div class="fixed inset-0 -z-10 bg-[url(/bg.webp)] bg-cover bg-center"></div>
         <div class="w-full max-w-lg">
             <main class="card relative">
                 {{if .Protected}}

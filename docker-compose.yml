@@ -16,6 +16,7 @@ services:
   tinyauth:
     image: ghcr.io/tinyauthapp/tinyauth:v5
     restart: unless-stopped
+    env_file: .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -29,15 +30,19 @@ services:
       - demo_network
 
   demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ghcr.io/tinyauthapp/demo:v0
     restart: unless-stopped
+    env_file: .env
     labels:
       traefik.enable: true
       traefik.http.routers.demo.rule: Host(`${TRAEFIK_DEMO_DOMAIN}`)
       traefik.http.routers.demo.entrypoints: web
       traefik.http.services.demo.loadbalancer.server.port: 3000
       traefik.http.routers.demo.middlewares: tinyauth
-      tinyauth.apps.demo.path.allow: ^\/$
+      tinyauth.apps.demo.path.allow: ^(\/|\/bg.webp)$
       tinyauth.apps.demo.config.domain: ${TRAEFIK_DEMO_DOMAIN}
     networks:
       - demo_network
