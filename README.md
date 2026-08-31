@@ -2,6 +2,8 @@
 
 A small web app for demonstrating [Tinyauth](https://github.com/tinyauthapp/tinyauth).
 
+Try out the Tinyauth demo at <https://app-demo.tinyauth.app>.
+
 It sits behind Tinyauth via Traefik forward auth and does zero authentication
 of its own. It serves two pages:
 
@@ -36,9 +38,10 @@ compare exactly what the proxy forwarded in each case.
 
 ## Configuration
 
-| Variable     | Default   | Description                                  |
-| ------------ | --------- | -------------------------------------------- |
-| `LOGOUT_URL` | `/logout` | Target of the "Log out" button.              |
+| Variable       | Default | Description                                          |
+| -------------- | ------- | ---------------------------------------------------- |
+| `TINYAUTH_URL` | ``      | The Tinyauth server URL, used for the logout button. |
+| `DEMO_URL`     | ``      | The demo app URL, used for the logout button.        |
 
 The server always listens on `:3000` and serves `/` (public) and `/protected`.
 
