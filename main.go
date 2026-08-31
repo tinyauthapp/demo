@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -56,9 +57,14 @@ func render(w http.ResponseWriter, r *http.Request, protected bool, logoutURL st
 }
 
 func main() {
-	logoutURL := os.Getenv("LOGOUT_URL")
-	if logoutURL == "" {
-		logoutURL = "/logout"
+	tinyauthURL := os.Getenv("TINYAUTH_URL")
+	demoURL := os.Getenv("DEMO_URL")
+
+	logoutURL := ""
+
+	if tinyauthURL != "" && demoURL != "" {
+		encodedDemoURL := url.QueryEscape(demoURL)
+		logoutURL = tinyauthURL + "/logout?login_for=app&redirect_uri=" + encodedDemoURL
 	}
 
 	mux := http.NewServeMux()
@@ -66,6 +72,6 @@ func main() {
 	mux.HandleFunc("GET /protected", func(w http.ResponseWriter, r *http.Request) { render(w, r, true, logoutURL) })
 
 	addr := ":3000"
-	log.Printf("tinyauth-demo listening on %s (logout -> %s)", addr, logoutURL)
+	log.Printf("tinyauth demo listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }

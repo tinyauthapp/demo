@@ -35,7 +35,8 @@ services:
     image: ghcr.io/tinyauthapp/demo:v0
     restart: unless-stopped
     environment:
-      LOGOUT_URL: ${TINYAUTH_APP_URL}/logout
+      TINYAUTH_URL: ${TINYAUTH_APP_URL}
+      DEMO_URL: ${DEMO_URL}
     labels:
       traefik.enable: true
       traefik.http.routers.demo.rule: Host(`${TRAEFIK_DEMO_DOMAIN}`)

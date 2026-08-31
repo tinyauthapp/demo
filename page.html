@@ -171,13 +171,14 @@
             tr {
                 @apply m-0 border-t p-0 even:bg-muted;
             }
+
+            .disabled {
+                @apply pointer-events-none opacity-50 grayscale saturate-50 cursor-not-allowed select-none;
+            }
         </style>
     </head>
-    {{ if.Protected }}
-    <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8 bg-gradient-to-br from-[#4FD1D9] to-[#34D399]">
-    {{ else }}
-    <body class="flex flex-col justify-center items-center min-h-svh px-4 py-8 bg-gradient-to-br from-[#4A7BA8] to-[#334155]">
-    {{ end }}
+    <body
+        class="flex flex-col justify-center items-center min-h-svh px-4 py-8 {{ if .Protected }}bg-gradient-to-br from-[#4FD1D9] to-[#34D399]{{ else }}bg-gradient-to-br from-[#4A7BA8] to-[#334155]{{ end }}">
         <div class="w-full max-w-lg">
             <main class="card relative">
                 {{if .Protected}}
@@ -316,7 +317,7 @@
                 <div class="card-footer flex-col items-stretch gap-3">
                     {{if .Protected}}
                     <a
-                        class="btn btn-outline text-destructive w-full"
+                        class="btn btn-outline text-destructive w-full {{ if not .LogoutURL }}disabled{{ end }}"
                         href="{{.LogoutURL}}"
                         >Log out</a
                     >
@@ -358,13 +359,19 @@
                         <div
                             class="mt-2 overflow-auto rounded-md border max-h-64"
                         >
-                            <table class="w-full text-sm border-separate border-spacing-0">
+                            <table
+                                class="w-full text-sm border-separate border-spacing-0"
+                            >
                                 <thead>
                                     <tr>
-                                        <th class="sticky top-0 bg-card px-4 py-2 text-left text-xs font-medium text-muted-foreground border-b">
+                                        <th
+                                            class="sticky top-0 bg-card px-4 py-2 text-left text-xs font-medium text-muted-foreground border-b"
+                                        >
                                             Header
                                         </th>
-                                        <th class="sticky top-0 bg-card px-4 py-2 text-left text-xs font-medium text-muted-foreground border-b">
+                                        <th
+                                            class="sticky top-0 bg-card px-4 py-2 text-left text-xs font-medium text-muted-foreground border-b"
+                                        >
                                             Value
                                         </th>
                                     </tr>
